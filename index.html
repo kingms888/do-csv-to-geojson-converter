@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>CSV to GeoJSON Converter — free, instant, in-browser</title>
+  <meta name="description" content="Convert CSV with lat/lng columns to GeoJSON directly in your browser. No upload, no server, privacy-first. Perfect for developers, GIS hobbyists, and data analysts.">
+  <meta name="keywords" content="csv to geojson, csv to kml, csv to shapefile, csv/json tools, developer tools, convert csv to geojson, geojson converter, lat lng to geojson">
+  <meta name="author" content="Frontend Tools Collective">
+  <link rel="canonical" href="https://tool.example/csv-to-geojson">
+  <meta property="og:title" content="CSV to GeoJSON Converter — instant, private, client-side">
+  <meta property="og:description" content="Drop a CSV with lat/lng columns, get GeoJSON instantly. No data leaves your browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tool.example/csv-to-geojson">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="CSV to GeoJSON Converter">
+  <meta name="twitter:description" content="Pure frontend CSV → GeoJSON. Works offline. No upload.">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #f6f9fc;
+      color: #1a2b3c;
+      line-height: 1.5;
+      padding: 1rem;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+      padding: 1.8rem 1.5rem 2.2rem;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+      color: #0b2b44;
+    }
+    .subhead {
+      font-size: 1.1rem;
+      color: #3b5f7a;
+      margin-bottom: 1.8rem;
+      border-left: 4px solid #2f7b9c;
+      padding-left: 1rem;
+    }
+    .flex-tool {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+    .input-area {
+      flex: 2;
+      min-width: 280px;
+    }
+    .output-area {
+      flex: 3;
+      min-width: 300px;
+    }
+    .card {
+      background: #f9fbfe;
+      border-radius: 18px;
+      padding: 1.5rem;
+      border: 1px solid #dde7f0;
+    }
+    .card label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 0.6rem;
+      color: #1e3b4f;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 1px solid #b8ccda;
+      border-radius: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      background: white;
+      transition: 0.2s;
+    }
+    textarea:focus, input:focus {
+      outline: none;
+      border-color: #2f7b9c;
+      box-shadow: 0 0 0 3px rgba(47,123,156,0.15);
+    }
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin: 1.2rem 0;
+    }
+    .btn {
+      background: #1f5f7e;
+      border: none;
+      color: white;
+      padding: 0.7rem 1.4rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      border: 1px solid #1a4d66;
+    }
+    .btn:hover {
+      background: #174e68;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 14px rgba(0,0,0,0.08);
+    }
+    .btn-outline {
+      background: transparent;
+      color: #1f5f7e;
+      border: 1px solid #1f5f7e;
+      box-shadow: none;
+    }
+    .btn-outline:hover {
+      background: #e3f0f7;
+    }
+    .btn-sm {
+      padding: 0.4rem 1rem;
+      font-size: 0.85rem;
+    }
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+    }
+    .output-header span {
+      font-weight: 600;
+      color: #1e3b4f;
+    }
+    .copy-btn {
+      background: #eef4f8;
+      border: 1px solid #b8ccda;
+      border-radius: 30px;
+      padding: 0.3rem 1rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: #1f5f7e;
+      font-weight: 500;
+    }
+    .copy-btn:hover {
+      background: #dbe9f2;
+    }
+    #geojsonOutput {
+      background: #0f1b26;
+      color: #d6e6f5;
+      border: 1px solid #2a4055;
+      min-height: 260px;
+      white-space: pre;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+    .placeholder-ad {
+      background: #f2f6fa;
+      border: 1px dashed #9db8cc;
+      border-radius: 16px;
+      padding: 1rem 1.2rem;
+      margin: 2rem 0 1.2rem;
+      text-align: center;
+      color: #2d5a78;
+      font-size: 0.9rem;
+    }
+    .affiliate-section {
+      background: #f9fbfe;
+      border-radius: 18px;
+      padding: 1.5rem;
+      border: 1px solid #dde7f0;
+      margin: 2rem 0 1.5rem;
+    }
+    .affiliate-title {
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #0b2b44;
+    }
+    .resource-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .resource-item {
+      background: white;
+      border-radius: 16px;
+      padding: 1rem;
+      flex: 1 1 180px;
+      border: 1px solid #dde7f0;
+      transition: 0.1s;
+    }
+    .resource-item a {
+      text-decoration: none;
+      color: #1f5f7e;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .resource-item p {
+      font-size: 0.8rem;
+      color: #3b5f7a;
+      margin-top: 0.4rem;
+    }
+    .privacy-note {
+      font-size: 0.75rem;
+      color: #5a7a8f;
+      margin-top: 2.2rem;
+      border-top: 1px solid #dde7f0;
+      padding-top: 1.2rem;
+      text-align: left;
+    }
+    .error-message {
+      color: #b33;
+      background: #ffeaea;
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      margin: 0.8rem 0;
+      font-size: 0.9rem;
+    }
+    .field-hint {
+      font-size: 0.8rem;
+      color: #4a6b80;
+      margin-top: 0.3rem;
+    }
+    @media (max-width: 700px) {
+      .container {
+        padding: 1rem;
+      }
+      h1 {
+        font-size: 1.6rem;
+      }
+      .flex-tool {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🗺️ CSV → GeoJSON Converter</h1>
+    <div class="subhead">lat/lng columns → FeatureCollection · 100% client-side</div>
+  </header>
+
+  <div class="flex-tool">
+    <!-- LEFT: INPUT -->
+    <div class="input-area card">
+      <label for="csvInput">📋 Paste CSV (with lat & lng columns)</label>
+      <textarea id="csvInput" placeholder="name,lat,lng,population&#10;Berlin,52.5200,13.4050,3769000&#10;Paris,48.8566,2.3522,2141000&#10;Madrid,40.4168,-3.7038,3223000" spellcheck="false"></textarea>
+      <div class="field-hint">Use any delimiter (auto-detect: comma, semicolon, tab). Column names containing 'lat' and 'lng' or 'lon' are detected automatically.</div>
+      
+      <div class="btn-group">
+        <button class="btn" id="convertBtn">⚡ Convert to GeoJSON</button>
+        <button class="btn btn-outline btn-sm" id="sampleBtn">Load sample</button>
+        <button class="btn btn-outline btn-sm" id="clearBtn">Clear</button>
+      </div>
+      <div id="errorBox" class="error-message" style="display: none;"></div>
+      <div>
+        <label for="latField">Latitude column (optional override)</label>
+        <input type="text" id="latField" placeholder="auto" value="">
+      </div>
+      <div style="margin-top: 0.8rem;">
+        <label for="lngField">Longitude column (optional override)</label>
+        <input type="text" id="lngField" placeholder="auto" value="">
+      </div>
+    </div>
+
+    <!-- RIGHT: OUTPUT -->
+    <div class="output-area card">
+      <div class="output-header">
+        <span>📦 GeoJSON FeatureCollection</span>
+        <button class="copy-btn" id="copyBtn">📋 Copy</button>
+      </div>
+      <textarea id="geojsonOutput" readonly placeholder='{"type":"FeatureCollection","features":[]}'></textarea>
+      <div style="margin-top: 0.8rem; display: flex; gap: 0.8rem; flex-wrap: wrap;">
+        <button class="btn btn-sm btn-outline" id="downloadBtn">⬇️ Download .geojson</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AD PLACEHOLDER (visible) -->
+  <div class="placeholder-ad" id="adPlaceholder">
+    <span style="font-weight:600;">📢 AD SPACE</span> — GIS software / data services (affiliate). <span style="opacity:0.7;">Your ad here</span>
+  </div>
+
+  <!-- AFFILIATE / RESOURCE PLACEHOLDER -->
+  <div class="affiliate-section">
+    <div class="affiliate-title">🔧 Recommended GIS & data tools</div>
+    <div class="resource-grid">
+      <div class="resource-item">
+        <a href="#" rel="nofollow sponsored">QGIS – free GIS</a>
+        <p>Desktop GIS for advanced analysis</p>
+      </div>
+      <div class="resource-item">
+        <a href="#" rel="nofollow sponsored">Mapbox Studio</a>
+        <p>Style & host interactive maps</p>
+      </div>
+      <div class="resource-item">
+        <a href="#" rel="nofollow sponsored">CSV to KML converter</a>
+        <p>Convert to KML for Google Earth</p>
+      </div>
+      <div class="resource-item">
+        <a href="#" rel="nofollow sponsored">Shapefile tools</a>
+        <p>Convert, inspect, reproject</p>
+      </div>
+    </div>
+    <p style="font-size:0.8rem; margin-top:1rem; color:#5a7a8f;">Affiliate links — we may earn a commission.</p>
+  </div>
+
+  <!-- PRIVACY NOTE (visible) -->
+  <div class="privacy-note">
+    🔒 <strong>Privacy:</strong> All conversion happens in your browser. No file is uploaded. Events may be counted anonymously for product improvement. No credentials collected.
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ---------- reportEvent helper (safe) ----------
+    window.reportEvent = function(name, payload = {}) {
+      const endpoint = window.ORGANISM_METRICS_ENDPOINT;
+      if (!endpoint) return;   // only if configured
+      try {
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event: name, ...payload, ts: Date.now() }),
+          keepalive: true
+        }).catch(() => {});
+      } catch (e) { /* silent */ }
+    };
+
+    // DOM elements
+    const csvInput = document.getElementById('csvInput');
+    const geojsonOutput = document.getElementById('geojsonOutput');
+    const errorBox = document.getElementById('errorBox');
+    const convertBtn = document.getElementById('convertBtn');
+    const sampleBtn = document.getElementById('sampleBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const latField = document.getElementById('latField');
+    const lngField = document.getElementById('lngField');
+
+    // ---------- helpers ----------
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.style.display = 'block';
+      reportEvent('csv2geojson_error', { message: msg });
+    }
+    function hideError() {
+      errorBox.style.display = 'none';
+    }
+
+    // auto-detect delimiter
+    function detectDelimiter(text) {
+      const firstLine = text.split(/\r?\n/)[0] || '';
+      const candidates = [',', ';', '\t', '|'];
+      let best = ',';
+      let maxCount = 0;
+      for (let d of candidates) {
+        const count = (firstLine.match(new RegExp('\\' + d, 'g')) || []).length;
+        if (count > maxCount) {
+          maxCount = count;
+          best = d;
+        }
+      }
+      return best;
+    }
+
+    // parse CSV to array of objects
+    function parseCSV(text, delimiter) {
+      const rows = [];
+      const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+      if (lines.length === 0) return rows;
+      const headers = lines[0].split(delimiter).map(h => h.trim());
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(delimiter);
+        if (values.length === 1 && values[0].trim() === '') continue;
+        const obj = {};
+        headers.forEach((h, idx) => {
+          obj[h] = (values[idx] !== undefined ? values[idx].trim() : '');
+        });
+        rows.push(obj);
+      }
+      return rows;
+    }
+
+    // find lat/lng column names
+    function findLatLngCols(headers, overrideLat, overrideLng) {
+      let latCol = null, lngCol = null;
+      if (overrideLat && headers.includes(overrideLat)) latCol = overrideLat;
+      if (overrideLng && headers.includes(overrideLng)) lngCol = overrideLng;
+      if (!latCol || !lngCol) {
+        // auto-detect
+        const lowerHeaders = headers.map(h => h.toLowerCase());
+        const latIndex = lowerHeaders.findIndex(h => h.includes('lat') || h === 'latitude' || h === 'y');
+        const lngIndex = lowerHeaders.findIndex(h => h.includes('lng') || h.includes('lon') || h === 'longitude' || h === 'x');
+        if (latIndex !== -1 && !latCol) latCol = headers[latIndex];
+        if (lngIndex !== -1 && !lngCol) lngCol = headers[lngIndex];
+      }
+      return { latCol, lngCol };
+    }
+
+    // main conversion
+    function convertCSVtoGeoJSON() {
+      hideError();
+      const text = csvInput.value;
+      if (!text.trim()) {
+        showError('Paste CSV data first.');
+        return;
+      }
+      const delimiter = detectDelimiter(text);
+      const rows = parseCSV(text, delimiter);
+      if (rows.length === 0) {
+        showError('No data rows found.');
+        return;
+      }
+      const headers = Object.keys(rows[0]);
+      const overrideLat = latField.value.trim();
+      const overrideLng = lngField.value.trim();
+      const { latCol, lngCol } = findLatLngCols(headers, overrideLat, overrideLng);
+      if (!latCol || !lngCol) {
+        showError(`Could not detect lat/lng columns. Found columns: ${headers.join(', ')}. Provide column names in the override fields.`);
+        return;
+      }
+
+      const features = [];
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const lat = parseFloat(row[latCol]);
+        const lng = parseFloat(row[lngCol]);
+        if (isNaN(lat) || isNaN(lng)) {
+          continue; // skip invalid coordinates
+        }
+        const properties = { ...row };
+        delete properties[latCol];
+        delete properties[lngCol];
+        features.push({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [lng, lat]
+          },
+          properties: properties
+        });
+      }
+
+      if (features.length === 0) {
+        showError('No valid coordinates found. Check lat/lng values.');
+        return;
+      }
+
+      const geojson = {
+        type: 'FeatureCollection',
+        features: features
+      };
+      geojsonOutput.value = JSON.stringify(geojson, null, 2);
+      reportEvent('csv2geojson_conversion', { features: features.length, delimiter: delimiter });
+    }
+
+    // sample data
+    function loadSample() {
+      const sample = `city,lat,lng,population,country\nBerlin,52.5200,13.4050,3769000,Germany\nParis,48.8566,2.3522,2141000,France\nMadrid,40.4168,-3.7038,3223000,Spain\nRome,41.9028,12.4964,2873000,Italy\nAmsterdam,52.3676,4.9041,872000,Netherlands`;
+      csvInput.value = sample;
+      latField.value = '';
+      lngField.value = '';
+      hideError();
+      geojsonOutput.value = '';
+      reportEvent('csv2geojson_sample_loaded');
+    }
+
+    // clear all
+    function clearAll() {
+      csvInput.value = '';
+      geojsonOutput.value = '';
+      latField.value = '';
+      lngField.value = '';
+      hideError();
+      reportEvent('csv2geojson_cleared');
+    }
+
+    // copy output
+    async function copyOutput() {
+      const text = geojsonOutput.value;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = '✅ Copied!';
+        setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 1500);
+        reportEvent('csv2geojson_copy');
+      } catch (e) {
+        // fallback
+        geojsonOutput.select();
+        document.execCommand('copy');
+        copyBtn.textContent = '✅ Copied!';
+        setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 1500);
+      }
+    }
+
+    // download geojson
+    function downloadGeoJSON() {
+      const text = geojsonOutput.value;
+      if (!text) {
+        showError('Nothing to download. Convert first.');
+        return;
+      }
+      const blob = new Blob([text], { type: 'application/geo+json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'converted.geojson';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      reportEvent('csv2geojson_download');
+    }
+
+    // ---------- event listeners ----------
+    convertBtn.addEventListener('click', convertCSVtoGeoJSON);
+    sampleBtn.addEventListener('click', loadSample);
+    clearBtn.addEventListener('click', clearAll);
+    copyBtn.addEventListener('click', copyOutput);
+    downloadBtn.addEventListener('click', downloadGeoJSON);
+
+    // auto-convert on paste? maybe not, but we can add a small hint.
+    // Also allow ctrl+enter
+    csvInput.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        convertCSVtoGeoJSON();
+      }
+    });
+
+    // initial sample for better UX
+    loadSample();
+    // convert immediately to show output
+    convertCSVtoGeoJSON();
+
+    // report page view (anonymized)
+    reportEvent('csv2geojson_page_view');
+  })();
+</script>
+
+<section data-organism-discovery="hub" style="margin:32px auto 20px;max-width:1040px;padding:16px;border-top:1px solid #d9e2ec;color:#475569;font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <strong style="display:block;color:#0f172a;margin-bottom:6px">More free browser tools</strong>
+  <p style="margin:0 0 8px">This page is part of an autonomous micro-tool network. Explore the live tool directory and related utilities.</p>
+  <p style="margin:0"><a href="https://kingms888.github.io/do-digital-organism-index/" style="color:#0f766e;font-weight:700">Open the tool directory</a> </p>
+</section>
+</body>
+</html>
